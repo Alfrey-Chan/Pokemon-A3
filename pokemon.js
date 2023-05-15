@@ -1,4 +1,3 @@
-var pokemon = [];
 const pokemonPerPage = 10;
 var numPages = 0;
 const numPageBtn = 5;
@@ -6,11 +5,10 @@ const numPageBtn = 5;
 
 const setup = async () => {
   const response = await axios.get("https://pokeapi.co/api/v2/pokemon?limit=810");
-  console.log(response.data.results);
-
   pokemon = response.data.results;
   numPages = Math.ceil(pokemon.length / pokemonPerPage);
-  console.log("numPages: ", numPages);
+
+  $('#filterButtons').on('change', '.filterCheckbox', filterPokemon)
 
   showPage(1);
 
@@ -47,8 +45,6 @@ const setup = async () => {
 
   $('body').on('click', '.pageBtn', async function (e) {
     const pageNum = parseInt($(this).attr('pageNum'));
-    console.log("pageBtn clicked");
-    console.log("pageNum: ", pageNum);
     showPage(pageNum);
   });
 
@@ -56,34 +52,27 @@ const setup = async () => {
 };
 
 async function showPage(currentPage) {
-  if (currentPage < 1) {
-    currentPage = 1;
-  }
-  if (currentPage > numPages) {
-    currentPage = numPages;
-  }
-  console.log("currentPage: ", currentPage);
+  const start = (currentPage - 1) * pokemonPerPage;
+  const end = start + pokemonPerPage;
+  const currentPagePokemon = pokemon.slice(start, end);
 
   $('#pokemon').empty();
-  // for (let pokemonIndex = 0; pokemonIndex < pokemon.length; pokemonIndex++) {
-    for (let pokemonIndex = ((currentPage - 1) * pokemonPerPage); pokemonIndex < ((currentPage - 1) * pokemonPerPage) + pokemonPerPage && pokemonIndex < pokemon.length; pokemonIndex++) {
-    let innerResponse = await axios.get(`${pokemon[pokemonIndex].url}`);
-    let pokemonInfo = innerResponse.data;
-    console.log("test");
+  for (const pokemonData of currentPagePokemon) {
+    const res = await axios.get(pokemonData.url);
+    const pokemonInfo = res.data;
     $('#pokemon').append(`
-      <div class="pokemonCard" pokeName=${pokemonInfo.name}>
-        <h3>${pokemonInfo.name}</h3>
-        <img src="${pokemonInfo.sprites.front_default}" alt="${pokemonInfo.name}">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pokeModal">More Info</button>
-      </div>
-      `)
-  }
+    <div class="pokemonCard" pokeName="${pokemonInfo.name}">
+      <h3>${pokemonInfo.name}</h3>
+      <img src="${pokemonInfo.sprites.front_default}" alt="${pokemonInfo.name}">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pokeModal">More Info</button>
+    </div>
+    `);
+  };
+
 
   $('#pagination').empty();
-  var startPage = Math.max(1, currentPage - Math.floor(numPageBtn / 2));
-  var endPage = Math.min(numPages, currentPage + Math.floor(numPageBtn / 2));
-  console.log("startPage: ", startPage);
-  console.log("endPage: ", endPage);
+  const startPage = Math.max(1, currentPage - Math.floor(numPageBtn / 2));
+  const endPage = Math.min(numPages, startPage + numPageBtn - 1);
 
   if (currentPage > 1) {
     $('#pagination').append(`
@@ -93,8 +82,9 @@ async function showPage(currentPage) {
   }
 
   for (let i = startPage; i <= endPage; i++) {
+    const buttonClass = i === currentPage ? 'btn btn-primary current-page' : 'btn btn-primary pageBtn';
     $('#pagination').append(`
-      <button type="button" class="btn btn-primary pageBtn" id="page${i}" pageNum="${i}">${i}</button>
+      <button type="button" class="${buttonClass}" id="page${i}" pageNum="${i}">${i}</button>
       `)
   }
 
@@ -106,6 +96,11 @@ async function showPage(currentPage) {
   }
 }
 
-
+async function filterPokemon() {
+  const selectedTypes = $('.filterCheckbox:checked').map(function () {
+    return $(this).val();
+  }).get();
+  console.log("selectedTypes: ", selectedTypes);
+}
 
 $(document).ready(setup);

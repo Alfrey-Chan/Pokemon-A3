@@ -5,6 +5,11 @@
     align-items: center;
 }
 
+.current-page {
+    background-color: red;
+    color: white;
+}
+
 .modal-dialog {
   border: solid 5px black;
 }
