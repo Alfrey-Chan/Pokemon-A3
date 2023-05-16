@@ -92,8 +92,11 @@ async function showPage(currentPage) {
     $('#pagination').append(`
       <button type="button" class="btn btn-primary pageBtn" id="page${currentPage + 1}" pageNum="${currentPage + 1}">Next</button>
       <button type="button" class="btn btn-primary pageBtn" id="page${numPages}" pageNum="${numPages}">Last</button>
-      `)
+      `);
   }
+  
+  const message = `Displaying ${currentPagePokemon.length} pokemons out of ${pokemon.length}`;
+  $('#DisplayCount').text(message);
 }
 
 async function filterPokemon() {
